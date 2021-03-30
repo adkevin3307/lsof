@@ -43,7 +43,7 @@ private:
     void parse_fd();
 
 public:
-    Process(std::filesystem::path path);
+    Process(const std::filesystem::path& path);
     ~Process();
 
     friend std::ostream& operator<<(std::ostream& os, const Process& process)

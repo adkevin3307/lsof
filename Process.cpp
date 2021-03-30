@@ -50,7 +50,7 @@ vector<string> split(string s)
     return result;
 }
 
-string type(filesystem::path path)
+string type(const filesystem::path& path)
 {
     if (!filesystem::exists(path)) return "";
     else if (filesystem::is_directory(path)) return "DIR";
@@ -61,25 +61,21 @@ string type(filesystem::path path)
     else return "unknown";
 }
 
-string inode(filesystem::path path)
+string inode(const filesystem::path& path)
 {
-    int fd = open(path.c_str(), O_RDONLY);
+    int ret;
+    struct stat file_stat;
 
-    if (fd >= 0) {
-        int ret;
-        struct stat file_stat;
+    ret = stat(path.c_str(), &file_stat);
 
-        ret = fstat(fd, &file_stat);
-
-        if (ret >= 0) {
-            return to_string(file_stat.st_ino);
-        }
+    if (ret >= 0) {
+        return to_string(file_stat.st_ino);
     }
 
     return "";
 }
 
-Process::Process(filesystem::path path)
+Process::Process(const filesystem::path& path)
 {
     this->m_path = path;
 
@@ -154,9 +150,9 @@ void Process::parse_basic_info()
                 }
             }
         }
-
-        file.close();
     }
+
+    file.close();
 }
 
 void Process::parse_status()
@@ -208,12 +204,38 @@ void Process::parse_maps()
                     this->m_files.push_back(file);
                 }
             }
-
-            file_stream.close();
         }
+
+        file_stream.close();
     }
 }
 
 void Process::parse_fd()
 {
+    filesystem::path target = this->m_path / "fd";
+
+    if (access(target.c_str(), R_OK) == 0) {
+        for (auto entry : filesystem::directory_iterator(target)) {
+            if (access(entry.path().c_str(), R_OK) == 0) {
+                File file;
+
+                file.m_fd = entry.path().filename();
+                file.m_type = type(entry.path());
+                file.m_node = inode(entry.path());
+                file.m_name = filesystem::read_symlink(entry.path());
+
+                this->m_files.push_back(file);
+            }
+        }
+    }
+    else {
+        File file;
+
+        file.m_fd = "NOFD";
+        file.m_type = "";
+        file.m_node = "";
+        file.m_name = target.string() + " (opendir: Permission denied)";
+
+        this->m_files.push_back(file);
+    }
 }

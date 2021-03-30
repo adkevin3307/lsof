@@ -11,7 +11,6 @@ int main()
 {
     string base = "/proc";
     regex path_regex(R"(/proc/[0-9]+)");
-
     
     cout << std::left << std::setw(40) << "COMMAND";
     cout << std::left << std::setw(10) << "PID";
