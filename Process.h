@@ -25,7 +25,7 @@ private:
             os << std::left << std::setw(5) << file.m_fd;
             os << std::left << std::setw(10) << file.m_type;
             os << std::left << std::setw(10) << file.m_node;
-            os << std::left << std::setw(50) << file.m_name;
+            os << file.m_name;
 
             return os;
         }
@@ -37,8 +37,10 @@ private:
     std::string m_user;
     std::vector<File> m_files;
 
+    void parse_basic_info();
     void parse_status();
-    void parse_open_files();
+    void parse_maps();
+    void parse_fd();
 
 public:
     Process(std::filesystem::path path);
@@ -51,6 +53,10 @@ public:
             os << std::left << std::setw(10) << process.m_pid;
             os << std::left << std::setw(20) << process.m_user;
             os << process.m_files[i];
+
+            if (i != process.m_files.size() - 1) {
+                os << '\n';
+            }
         }
 
         return os;

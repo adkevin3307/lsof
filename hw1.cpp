@@ -19,8 +19,7 @@ int main()
     cout << std::left << std::setw(5) << "FD";
     cout << std::left << std::setw(10) << "TYPE";
     cout << std::left << std::setw(10) << "NODE";
-    cout << std::left << std::setw(50) << "NAME";
-    cout << '\n';
+    cout << "NAME" << '\n';
 
     for (auto entry : filesystem::directory_iterator(base)) {
         if (regex_match(entry.path().c_str(), path_regex)) {
