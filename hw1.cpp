@@ -1,32 +1,48 @@
-#include <iostream>
 #include <string>
-#include <regex>
-#include <filesystem>
+#include <map>
+#include <unistd.h>
 
-#include "Process.h"
+#include "ProcessManagement.h"
 
 using namespace std;
 
-int main()
+map<string, string> argparse(int argc, char** argv)
 {
-    string base = "/proc";
-    regex path_regex(R"(/proc/[0-9]+)");
-    
-    cout << std::left << std::setw(40) << "COMMAND";
-    cout << std::left << std::setw(10) << "PID";
-    cout << std::left << std::setw(20) << "USER";
-    cout << std::left << std::setw(5) << "FD";
-    cout << std::left << std::setw(10) << "TYPE";
-    cout << std::left << std::setw(10) << "NODE";
-    cout << "NAME" << '\n';
+    int opt = 0;
+    map<string, string> args;
 
-    for (auto entry : filesystem::directory_iterator(base)) {
-        if (regex_match(entry.path().c_str(), path_regex)) {
-            Process process(entry.path());
+    while (true) {
+        opt = getopt(argc, argv, "c:t:f:");
 
-            cout << process << '\n';
+        if (opt == -1) break;
+
+        switch (opt) {
+            case 'c':
+                args["c"] = optarg;
+
+                break;
+            case 't':
+                args["t"] = optarg;
+
+                break;
+            case 'f':
+                args["f"] = optarg;
+
+                break;
+            default:
+                break;
         }
     }
+
+    return args;
+}
+
+int main(int argc, char** argv)
+{
+    map<string, string> args = argparse(argc, argv);
+
+    ProcessManagement process_management(args);
+    process_management.run();
 
     return 0;
 }

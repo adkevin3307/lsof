@@ -46,6 +46,8 @@ public:
     Process(const std::filesystem::path& path);
     ~Process();
 
+    bool operator<(const Process& process) const;
+
     friend std::ostream& operator<<(std::ostream& os, const Process& process)
     {
         for (size_t i = 0; i < process.m_files.size(); i++) {

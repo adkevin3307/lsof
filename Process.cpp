@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <regex>
 
 using namespace std;
 
@@ -97,10 +98,10 @@ Process::~Process()
 
 Process::File::File()
 {
-    this->m_fd = "-";
-    this->m_type = "-";
-    this->m_node = "-";
-    this->m_name = "-";
+    this->m_fd = "";
+    this->m_type = "";
+    this->m_node = "";
+    this->m_name = "";
 }
 
 Process::File::~File()
@@ -182,6 +183,7 @@ void Process::parse_status()
 
 void Process::parse_maps()
 {
+    regex maps_regex(R"(^\[.+\])");
     filesystem::path target = this->m_path / "maps";
 
     if (access(target.c_str(), R_OK) == 0) {
@@ -194,9 +196,11 @@ void Process::parse_maps()
                 vector<string> tokens = split(s);
 
                 if (tokens.size() == 6) {
+                    if (regex_match(tokens[5], maps_regex)) continue;
+
                     File file;
 
-                    file.m_fd = "mem";
+                    file.m_fd = ((tokens[5].find("deleted") == string::npos) ? "mem" : "del");
                     file.m_type = type(filesystem::path(tokens[5]));
                     file.m_node = tokens[4];
                     file.m_name = tokens[5];
@@ -212,14 +216,40 @@ void Process::parse_maps()
 
 void Process::parse_fd()
 {
-    filesystem::path target = this->m_path / "fd";
+    filesystem::path target_fd = this->m_path / "fd";
+    filesystem::path target_fdinfo = this->m_path / "fdinfo";
 
-    if (access(target.c_str(), R_OK) == 0) {
-        for (auto entry : filesystem::directory_iterator(target)) {
+    if (access(target_fd.c_str(), R_OK) == 0 && access(target_fdinfo.c_str(), R_OK) == 0) {
+        for (auto entry : filesystem::directory_iterator(target_fd)) {
             if (access(entry.path().c_str(), R_OK) == 0) {
                 File file;
+                string open_mode;
 
-                file.m_fd = entry.path().filename();
+                fstream file_stream;
+                file_stream.open(target_fdinfo / entry.path().filename(), ios::in);
+
+                if (file_stream.is_open()) {
+                    string s;
+                    while (getline(file_stream, s)) {
+                        if (s.find("flags") != string::npos) {
+                            s = trim(s);
+
+                            if (s.back() == '0') {
+                                open_mode = 'r';
+                            }
+                            if (s.back() == '1') {
+                                open_mode = 'w';
+                            }
+                            if (s.back() == '2') {
+                                open_mode = 'u';
+                            }
+                        }
+                    }
+                }
+
+                file_stream.close();
+
+                file.m_fd = entry.path().filename().string() + open_mode;
                 file.m_type = type(entry.path());
                 file.m_node = inode(entry.path());
                 file.m_name = filesystem::read_symlink(entry.path());
@@ -234,8 +264,13 @@ void Process::parse_fd()
         file.m_fd = "NOFD";
         file.m_type = "";
         file.m_node = "";
-        file.m_name = target.string() + " (opendir: Permission denied)";
+        file.m_name = target_fd.string() + " (opendir: Permission denied)";
 
         this->m_files.push_back(file);
     }
+}
+
+bool Process::operator<(const Process& process) const
+{
+    return atoi(this->m_pid.c_str()) < atoi(process.m_pid.c_str());
 }
