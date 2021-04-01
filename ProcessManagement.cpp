@@ -32,9 +32,14 @@ void ProcessManagement::run()
 
     for (auto entry : filesystem::directory_iterator(base)) {
         if (regex_match(entry.path().c_str(), path_regex)) {
-            Process process(entry.path());
+            try {
+                Process process(entry.path());
 
-            this->m_processes.push_back(process);
+                this->m_processes.push_back(process);
+            }
+            catch (const runtime_error& e) {
+                cerr << e.what() << '\n';
+            }
         }
     }
 

@@ -21,6 +21,11 @@ private:
 
         friend class Process;
 
+        friend bool operator==(const File& f1, const File& f2)
+        {
+            return ((f1.m_fd == f2.m_fd) && (f1.m_type == f2.m_type) && (f1.m_node == f2.m_node) && (f1.m_name == f2.m_name));
+        }
+
         friend std::ostream& operator<<(std::ostream& os, const File& file)
         {
             os << std::left << std::setw(5) << file.m_fd;

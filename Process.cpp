@@ -221,7 +221,9 @@ void Process::parse_maps()
                     file.m_node = tokens[4];
                     file.m_name = tokens[5];
 
-                    this->m_files.push_back(file);
+                    if (find(this->m_files.begin(), this->m_files.end(), file) == this->m_files.end()) {
+                        this->m_files.push_back(file);
+                    }
                 }
             }
         }
