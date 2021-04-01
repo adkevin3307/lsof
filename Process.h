@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <filesystem>
+#include <map>
 
 class Process {
 private:
@@ -47,6 +48,9 @@ public:
     ~Process();
 
     bool operator<(const Process& process) const;
+
+    const size_t size() const;
+    std::map<std::string, std::string> info(size_t index) const;
 
     friend std::ostream& operator<<(std::ostream& os, const Process& process)
     {

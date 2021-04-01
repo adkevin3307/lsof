@@ -53,13 +53,27 @@ vector<string> split(string s)
 
 string type(const filesystem::path& path)
 {
-    if (!filesystem::exists(path)) return "";
-    else if (filesystem::is_directory(path)) return "DIR";
-    else if (filesystem::is_regular_file(path)) return "REG";
-    else if (filesystem::is_character_file(path)) return "CHR";
-    else if (filesystem::is_fifo(path)) return "FIFO";
-    else if (filesystem::is_socket(path)) return "SOCK";
-    else return "unknown";
+    if (!filesystem::exists(path)) {
+        return "";
+    }
+    else if (filesystem::is_directory(path)) {
+        return "DIR";
+    }
+    else if (filesystem::is_regular_file(path)) {
+        return "REG";
+    }
+    else if (filesystem::is_character_file(path)) {
+        return "CHR";
+    }
+    else if (filesystem::is_fifo(path)) {
+        return "FIFO";
+    }
+    else if (filesystem::is_socket(path)) {
+        return "SOCK";
+    }
+    else {
+        return "unknown";
+    }
 }
 
 string inode(const filesystem::path& path)
@@ -124,7 +138,9 @@ void Process::parse_basic_info()
             key = trim(s.substr(0, it));
             value = trim(s.substr(it + 1));
 
-            if (key.length() <= 0 || value.length() <= 0) continue;
+            if (key.length() <= 0 || value.length() <= 0) {
+                continue;
+            }
             else if (key == "Name") {
                 this->m_command = value;
             }
@@ -137,7 +153,7 @@ void Process::parse_basic_info()
 
                 string euid, ruid, suid, fsuid;
                 ss >> euid >> ruid >> suid >> fsuid;
-                
+
                 uid_t uid = atoi(ruid.c_str());
 
                 struct passwd* pws = NULL;
@@ -273,4 +289,24 @@ void Process::parse_fd()
 bool Process::operator<(const Process& process) const
 {
     return atoi(this->m_pid.c_str()) < atoi(process.m_pid.c_str());
+}
+
+const size_t Process::size() const
+{
+    return this->m_files.size();
+}
+
+map<string, string> Process::info(size_t index) const
+{
+    map<string, string> result;
+
+    result["COMMAND"] = this->m_command;
+    result["PID"] = this->m_pid;
+    result["USER"] = this->m_user;
+    result["FD"] = this->m_files[index].m_fd;
+    result["TYPE"] = this->m_files[index].m_type;
+    result["NODE"] = this->m_files[index].m_node;
+    result["NAME"] = this->m_files[index].m_name;
+
+    return result;
 }
