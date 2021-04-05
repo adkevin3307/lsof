@@ -55,10 +55,7 @@ vector<string> split(string s, int max_size = -1)
 
 string type(const filesystem::path& path)
 {
-    if (!filesystem::exists(path)) {
-        return "";
-    }
-    else if (filesystem::is_directory(path)) {
+    if (filesystem::is_directory(path)) {
         return "DIR";
     }
     else if (filesystem::is_regular_file(path)) {
@@ -219,7 +216,7 @@ void Process::parse_maps()
                     File file;
 
                     file.m_fd = ((tokens[5].find("deleted") == string::npos) ? "mem" : "del");
-                    file.m_type = type(filesystem::path(tokens[5]));
+                    file.m_type = type(filesystem::path(split(tokens[5])[0]));
                     file.m_node = tokens[4];
                     file.m_name = tokens[5];
 
