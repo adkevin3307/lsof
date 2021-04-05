@@ -53,9 +53,7 @@ void ProcessManagement::run()
                 smatch string_match;
                 regex command_regex(this->m_args["c"]);
 
-                regex_search(info["COMMAND"], string_match, command_regex);
-
-                if (string_match.size() == 0) continue;
+                if (!regex_search(info["COMMAND"], string_match, command_regex)) continue;
             }
 
             if (this->m_args.find("t") != this->m_args.end()) {
@@ -74,9 +72,7 @@ void ProcessManagement::run()
                 smatch string_match;
                 regex name_regex(this->m_args["f"]);
 
-                regex_search(info["NAME"], string_match, name_regex);
-
-                if (string_match.size() == 0) continue;
+                if (!regex_search(info["NAME"], string_match, name_regex)) continue;
             }
 
             cout << left << setw(40) << info["COMMAND"];

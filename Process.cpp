@@ -30,7 +30,7 @@ string trim(string s)
     return s;
 }
 
-vector<string> split(string s)
+vector<string> split(string s, int max_size = -1)
 {
     vector<string> result;
 
@@ -38,6 +38,8 @@ vector<string> split(string s)
     s = trim(s);
 
     while ((index = s.find(' ')) != string::npos) {
+        if (max_size != -1 && result.size() == (size_t)(max_size - 1)) break;
+
         string token = trim(s.substr(0, index));
 
         result.push_back(token);
@@ -199,7 +201,7 @@ void Process::parse_status()
 
 void Process::parse_maps()
 {
-    regex maps_regex(R"(^\[.+\])");
+    regex maps_regex(R"(^\[.+\]$)");
     filesystem::path target = this->m_path / "maps";
 
     if (access(target.c_str(), R_OK) == 0) {
@@ -209,7 +211,7 @@ void Process::parse_maps()
         if (file_stream.is_open()) {
             string s;
             while (getline(file_stream, s)) {
-                vector<string> tokens = split(s);
+                vector<string> tokens = split(s, 6);
 
                 if (tokens.size() == 6) {
                     if (regex_match(tokens[5], maps_regex)) continue;
