@@ -218,7 +218,7 @@ void Process::parse_maps()
                     auto it = tokens[5].find(" (deleted)");
 
                     file.m_fd = ((it == string::npos) ? "mem" : "del");
-                    file.m_type = type(filesystem::path(it == string::npos ? tokens[5] : tokens[5].substr(0, it)));
+                    file.m_type = ((it == string::npos) ? "REG" : "unknown");
                     file.m_node = tokens[4];
                     file.m_name = tokens[5];
 
@@ -240,41 +240,42 @@ void Process::parse_fd()
 
     if (access(target_fd.c_str(), R_OK) == 0 && access(target_fdinfo.c_str(), R_OK) == 0) {
         for (auto entry : filesystem::directory_iterator(target_fd)) {
-            if (access(entry.path().c_str(), R_OK) == 0) {
-                File file;
-                string open_mode;
+            File file;
+            string open_mode;
 
-                fstream file_stream;
-                file_stream.open(target_fdinfo / entry.path().filename(), ios::in);
+            fstream file_stream;
+            file_stream.open(target_fdinfo / entry.path().filename(), ios::in);
 
-                if (file_stream.is_open()) {
-                    string s;
-                    while (getline(file_stream, s)) {
-                        if (s.find("flags") != string::npos) {
-                            s = trim(s);
+            if (file_stream.is_open()) {
+                string s;
+                while (getline(file_stream, s)) {
+                    if (s.find("flags") != string::npos) {
+                        s = trim(s);
 
-                            if (s.back() == '0') {
-                                open_mode = 'r';
-                            }
-                            if (s.back() == '1') {
-                                open_mode = 'w';
-                            }
-                            if (s.back() == '2') {
-                                open_mode = 'u';
-                            }
+                        if (s.back() == '0') {
+                            open_mode = 'r';
+                        }
+                        if (s.back() == '1') {
+                            open_mode = 'w';
+                        }
+                        if (s.back() == '2') {
+                            open_mode = 'u';
                         }
                     }
                 }
-
-                file_stream.close();
-
-                file.m_fd = entry.path().filename().string() + open_mode;
-                file.m_type = type(entry.path());
-                file.m_node = inode(entry.path());
-                file.m_name = filesystem::read_symlink(entry.path());
-
-                this->m_files.push_back(file);
             }
+
+            file_stream.close();
+
+            string name = filesystem::read_symlink(entry.path());
+            auto it = name.find(" (deleted)");
+
+            file.m_fd = entry.path().filename().string() + open_mode;
+            file.m_type = (it == string::npos ? type(entry.path()) : "unknown");
+            file.m_node = inode(entry.path());
+            file.m_name = name;
+
+            this->m_files.push_back(file);
         }
     }
     else {
