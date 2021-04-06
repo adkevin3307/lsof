@@ -22,7 +22,7 @@ void ProcessManagement::run()
 {
     string base = "/proc";
     regex path_regex(R"(/proc/[0-9]+)");
-    
+
     cout << left << setw(40) << "COMMAND";
     cout << left << setw(10) << "PID";
     cout << left << setw(20) << "USER";
