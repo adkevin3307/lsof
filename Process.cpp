@@ -215,8 +215,10 @@ void Process::parse_maps()
 
                     File file;
 
-                    file.m_fd = ((tokens[5].find("deleted") == string::npos) ? "mem" : "del");
-                    file.m_type = type(filesystem::path(split(tokens[5])[0]));
+                    auto it = tokens[5].find(" (deleted)");
+
+                    file.m_fd = ((it == string::npos) ? "mem" : "del");
+                    file.m_type = type(filesystem::path(it == string::npos ? tokens[5] : tokens[5].substr(0, it)));
                     file.m_node = tokens[4];
                     file.m_name = tokens[5];
 
