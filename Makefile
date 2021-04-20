@@ -1,4 +1,4 @@
-EXE = hw1
+EXE = lsof
 OBJ_DIR = obj
 TRASH = .cache
 
